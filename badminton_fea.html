@@ -660,6 +660,19 @@
     transition: color 0.15s, border-color 0.15s;
   }
   .load-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .del-btn {
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 3px 8px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .del-btn:hover { color: var(--red); border-color: var(--red); }
   .saves-empty {
     padding: 20px;
     text-align: center;
@@ -1471,12 +1484,13 @@ async function renderSavesList() {
       const dt = new Date(s.saved_at);
       const dateStr = dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       return `
-        <div class="save-row">
+        <div class="save-row" id="row-${s.id}">
           <div class="save-info">
             <div class="save-name">${escHtml(s.name)}</div>
             <div class="save-meta">${escHtml(s.city)} · ${dateStr}</div>
           </div>
           <button class="load-btn" onclick="handleLoadById('${escHtml(s.id)}')">Load</button>
+          <button class="del-btn" onclick="handleDelete('${escHtml(s.id)}')">✕</button>
         </div>`;
     }).join('');
   } catch (e) {
@@ -1498,6 +1512,29 @@ async function handleLoadById(id) {
   } catch (e) {
     statusEl.textContent = 'Load failed: ' + (e.message || String(e));
     statusEl.className = 'modal-status err';
+  }
+}
+
+async function handleDelete(id) {
+  const pwd = prompt('Enter password to delete:');
+  if (pwd === null) return;
+  if (pwd !== 'feadel') {
+    alert('Incorrect password.');
+    return;
+  }
+  const row = document.getElementById('row-' + id);
+  if (row) row.style.opacity = '0.4';
+  const { error } = await sb.from('badminton_saves').delete().eq('id', id);
+  if (error) {
+    if (row) row.style.opacity = '1';
+    document.getElementById('loadStatus').textContent = 'Delete failed: ' + error.message;
+    document.getElementById('loadStatus').className = 'modal-status err';
+    return;
+  }
+  if (row) row.remove();
+  const remaining = document.querySelectorAll('#savesList .save-row').length;
+  if (!remaining) {
+    document.getElementById('savesList').innerHTML = '<div class="saves-empty">No saves yet — be the first!</div>';
   }
 }
 
