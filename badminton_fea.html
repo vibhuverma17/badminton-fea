@@ -1011,7 +1011,7 @@ function getExpTotal() { return sum(expItems, 'amt'); }
 function getRevLoTotal() { return sum(revItems, 'amtLo'); }
 function roundUp50k(n) { return Math.ceil(n / 50000) * 50000; }
 function getMortgagePayment() {
-  const principal = roundUp50k(getSetupTotal());
+  const principal = getSetupTotal();
   const r = mortgageRate / 100 / 12;
   const n = mortgageTerm * 12;
   if (r === 0) return principal / n;
@@ -1192,7 +1192,7 @@ function update() {
   document.getElementById('mortgageTermVal').textContent = mortgageTerm + ' yrs';
 
   const setup = getSetupTotal();
-  const roundedLoan = roundUp50k(setup);
+  const roundedLoan = setup;
   const mortgagePayment = getMortgagePayment();
   const baseExpense = getExpTotal();
   const { courtRev, otherRev, totalRev, expense, profit, courts } = calcMonthly(rate, occ);
@@ -1258,7 +1258,7 @@ function update() {
 
   document.getElementById('bePanel').innerHTML = `
     <div class="be-row"><span class="be-label">Setup cost (actual)</span><span class="be-val amber">${fmt(setup)}</span></div>
-    <div class="be-row"><span class="be-label">Loan amount (rounded up to nearest $50k)</span><span class="be-val amber">${fmt(roundedLoan)}</span></div>
+    <div class="be-row"><span class="be-label">Loan amount (exact setup cost)</span><span class="be-val amber">${fmt(roundedLoan)}</span></div>
     <div class="be-row"><span class="be-label">Monthly mortgage (${mortgageRate.toFixed(2)}%, ${mortgageTerm}-yr amort.)</span><span class="be-val red">${fmt(mortgagePayment)}/mo</span></div>
     <div class="be-row"><span class="be-label">Monthly operating expenses</span><span class="be-val">${fmt(baseExpense)}/mo</span></div>
     <div class="be-row"><span class="be-label">Total monthly expenses (ops + mortgage)</span><span class="be-val">${fmt(expense)}/mo</span></div>
@@ -1603,9 +1603,9 @@ function handleNew() {
 }
 
 function resetToDefaults() {
-  setupItems = [];
-  expItems   = [];
-  revItems   = [];
+  setupItems.forEach(item => { item.amt = 0; });
+  expItems.forEach(item => { item.amt = 0; });
+  revItems.forEach(item => { item.amtLo = 0; });
   document.getElementById('locName').value            = '';
   document.getElementById('sqft').value               = '';
   document.getElementById('numCourts').value          = 7;
