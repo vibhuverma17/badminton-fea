@@ -344,6 +344,24 @@
     text-align: right;
   }
 
+  .slider-val-input {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border2);
+    outline: none;
+    width: 70px;
+    min-width: 55px;
+    text-align: right;
+    -moz-appearance: textfield;
+  }
+  .slider-val-input::-webkit-outer-spin-button,
+  .slider-val-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .slider-val-input:focus { border-bottom-color: var(--accent); }
+
   /* Breakeven panel */
   .be-panel {
     background: var(--bg3);
@@ -910,12 +928,12 @@
         <div class="slider-row">
           <span class="slider-label">Court rate ($/hr/court)</span>
           <input type="range" min="0" max="100" value="30" step="1" id="rateSlider">
-          <span class="slider-val" id="rateVal">$30/hr</span>
+          <input type="number" class="slider-val-input" id="rateVal" min="0" max="100" step="1" value="30">
         </div>
         <div class="slider-row">
           <span class="slider-label">Court occupancy (24/7)</span>
           <input type="range" min="0" max="100" value="33" step="1" id="occupancySlider">
-          <span class="slider-val" id="occupancyVal">33%</span>
+          <input type="number" class="slider-val-input" id="occupancyVal" min="0" max="100" step="1" value="33">
         </div>
         <div class="slider-row" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
           <span class="slider-label" style="flex:1;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;">Commercial Mortgage</span>
@@ -923,12 +941,12 @@
         <div class="slider-row">
           <span class="slider-label">Mortgage rate (annual %)</span>
           <input type="range" min="5" max="12" value="6.5" step="0.25" id="mortgageRateSlider">
-          <span class="slider-val" id="mortgageRateVal">6.50%</span>
+          <input type="number" class="slider-val-input" id="mortgageRateVal" min="5" max="12" step="0.25" value="6.5">
         </div>
         <div class="slider-row">
           <span class="slider-label">Loan term (years)</span>
           <input type="range" min="10" max="25" value="20" step="5" id="mortgageTermSlider">
-          <span class="slider-val" id="mortgageTermVal">20 yrs</span>
+          <input type="number" class="slider-val-input" id="mortgageTermVal" min="10" max="25" step="5" value="20">
         </div>
       </div>
       <p class="note" style="margin-top:8px">Facility is open 24/7 — occupancy is the only utilisation lever. 33% ≈ 8 hrs/day avg · 50% ≈ 12 hrs/day · 100% = fully booked around the clock.</p>
@@ -1186,10 +1204,10 @@ function update() {
   mortgageRate = parseFloat(document.getElementById('mortgageRateSlider').value);
   mortgageTerm = parseInt(document.getElementById('mortgageTermSlider').value);
 
-  document.getElementById('rateVal').textContent = '$' + rate + '/hr';
-  document.getElementById('occupancyVal').textContent = occ + '%';
-  document.getElementById('mortgageRateVal').textContent = mortgageRate.toFixed(2) + '%';
-  document.getElementById('mortgageTermVal').textContent = mortgageTerm + ' yrs';
+  document.getElementById('rateVal').value         = rate;
+  document.getElementById('occupancyVal').value     = occ;
+  document.getElementById('mortgageRateVal').value  = mortgageRate;
+  document.getElementById('mortgageTermVal').value  = mortgageTerm;
 
   const setup = getSetupTotal();
   const roundedLoan = setup;
@@ -1303,6 +1321,21 @@ document.getElementById('occupancySlider').addEventListener('input', update);
 document.getElementById('numCourts').addEventListener('input', update);
 document.getElementById('mortgageRateSlider').addEventListener('input', update);
 document.getElementById('mortgageTermSlider').addEventListener('input', update);
+
+// Typing in value inputs syncs back to the slider
+function syncInputToSlider(inputId, sliderId) {
+  const input  = document.getElementById(inputId);
+  const slider = document.getElementById(sliderId);
+  let val = parseFloat(input.value);
+  if (isNaN(val)) val = parseFloat(slider.value);
+  val = Math.max(parseFloat(slider.min), Math.min(parseFloat(slider.max), val));
+  slider.value = val;
+  update();
+}
+document.getElementById('rateVal').addEventListener('change',        () => syncInputToSlider('rateVal',        'rateSlider'));
+document.getElementById('occupancyVal').addEventListener('change',   () => syncInputToSlider('occupancyVal',   'occupancySlider'));
+document.getElementById('mortgageRateVal').addEventListener('change',() => syncInputToSlider('mortgageRateVal','mortgageRateSlider'));
+document.getElementById('mortgageTermVal').addEventListener('change',() => syncInputToSlider('mortgageTermVal','mortgageTermSlider'));
 
 // Mark dirty on any user interaction anywhere on the page
 document.addEventListener('input',  () => { isDirty = true; });
