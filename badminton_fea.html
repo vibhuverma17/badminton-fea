@@ -1403,6 +1403,10 @@ function openSaveModal() {
   document.getElementById('shareBox').classList.remove('visible');
   document.getElementById('doSaveBtn').textContent = 'Save & Get Link';
   document.getElementById('doSaveBtn').disabled = false;
+  const lastName = localStorage.getItem('badminton_save_name');
+  const lastCity = localStorage.getItem('badminton_save_city');
+  if (lastName) document.getElementById('saveName').value = lastName;
+  if (lastCity)  document.getElementById('saveCity').value = lastCity;
   document.getElementById('saveOverlay').classList.add('open');
   document.getElementById('saveName').focus();
 }
@@ -1443,6 +1447,8 @@ async function handleSave() {
     btn.textContent = 'Saving…';
     const id = await doSave(name, city, { newCopy: isNewCopy });
     isDirty = false;
+    localStorage.setItem('badminton_save_name', name);
+    localStorage.setItem('badminton_save_city', city);
     const url = `${location.origin}${location.pathname}?save=${id}`;
     document.getElementById('shareUrl').textContent = url;
     document.getElementById('shareBox').classList.add('visible');
