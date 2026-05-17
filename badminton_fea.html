@@ -1630,7 +1630,23 @@ function handleNew() {
 }
 
 function resetToDefaults() {
-  window.location.href = window.location.pathname;
+  setupItems = [];
+  expItems   = [];
+  revItems   = [];
+  document.getElementById('locName').value            = '';
+  document.getElementById('sqft').value               = '';
+  document.getElementById('numCourts').value          = 7;
+  document.getElementById('rateSlider').value         = 30;
+  document.getElementById('occupancySlider').value    = 33;
+  document.getElementById('mortgageRateSlider').value = 6.5;
+  document.getElementById('mortgageTermSlider').value = 20;
+  mortgageRate = 6.5;
+  mortgageTerm = 20;
+  hideBanner();
+  history.replaceState(null, '', window.location.pathname);
+  isDirty = false;
+  renderAll();
+  update();
 }
 
 function handleLogoClick() {
