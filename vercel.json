@@ -1,0 +1,3 @@
+{
+  "rewrites": [{ "source": "/", "destination": "/badminton_fea.html" }]
+}
