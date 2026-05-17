@@ -1413,15 +1413,32 @@ async function handleSave() {
     return;
   }
   btn.disabled = true;
-  btn.textContent = 'Saving…';
+  btn.textContent = 'Checking…';
   statusEl.textContent = '';
   try {
+    // Check if a save already exists for this name + city
+    const { data: existing } = await sb
+      .from('badminton_saves')
+      .select('id')
+      .eq('name', name)
+      .eq('city', city)
+      .maybeSingle();
+
+    if (existing) {
+      btn.disabled = false;
+      btn.textContent = 'Save & Get Link';
+      const overwrite = confirm(`A save already exists for "${name}" · ${city}.\nOverwrite it with your current data?`);
+      if (!overwrite) return;
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+    }
+
     const id = await doSave(name, city);
     isDirty = false;
     const url = `${location.origin}${location.pathname}?save=${id}`;
     document.getElementById('shareUrl').textContent = url;
     document.getElementById('shareBox').classList.add('visible');
-    statusEl.textContent = 'Saved!';
+    statusEl.textContent = existing ? 'Overwritten!' : 'Saved!';
     statusEl.className = 'modal-status ok';
     btn.textContent = 'Save Again';
   } catch (e) {
