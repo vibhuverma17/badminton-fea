@@ -59,7 +59,10 @@
     color: var(--accent);
     letter-spacing: -0.02em;
     line-height: 1;
+    cursor: pointer;
+    transition: opacity 0.15s;
   }
+  .header-title:hover { opacity: 0.75; }
 
   .header-sub {
     font-size: 11px;
@@ -700,7 +703,7 @@
 
 <div class="header">
   <div>
-    <div class="header-title">Badminton Feasibility Analysis</div>
+    <div class="header-title" onclick="handleLogoClick()">Badminton Feasibility Analysis</div>
     <div class="header-sub">Financial model · location-agnostic · fully editable</div>
   </div>
   <div class="location-row">
@@ -1580,6 +1583,14 @@ async function checkUrlParams() {
   } catch (e) {
     console.warn('Could not load save from URL:', e.message);
   }
+}
+
+function handleLogoClick() {
+  if (isDirty) {
+    const save = confirm('You have unsaved changes.\nSave your progress before going home?');
+    if (save) { openSaveModal(); return; }
+  }
+  window.location.href = window.location.pathname;
 }
 
 function escHtml(s) {
