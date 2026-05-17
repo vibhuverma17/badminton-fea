@@ -200,6 +200,18 @@
     padding: 0 3px;
   }
 
+  .amt-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+  .dollar-pfx {
+    color: var(--text2);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    flex-shrink: 0;
+    user-select: none;
+  }
   .editable-amt {
     background: transparent;
     border: none;
@@ -208,7 +220,7 @@
     font-family: 'DM Mono', monospace;
     font-size: 12px;
     text-align: right;
-    width: 90px;
+    width: 80px;
   }
 
   .editable-amt:focus {
@@ -1064,19 +1076,19 @@ function renderTable(tbodyId, items, type) {
       tr.innerHTML = `
         <td><button class="row-del" onclick="delRow('setup',${i})">✕</button></td>
         <td class="name-cell"><input class="editable-name ${item.red ? 'red-hint' : ''}" value="${item.name}" onchange="setupItems[${i}].name=this.value"></td>
-        <td class="amt-cell"><input class="editable-amt" value="${item.amt}" onchange="setupItems[${i}].amt=parseFloat(this.value)||0;update()" onblur="update()"></td>
+        <td class="amt-cell"><div class="amt-wrap"><span class="dollar-pfx">$</span><input class="editable-amt" value="${item.amt}" onchange="setupItems[${i}].amt=parseFloat(this.value)||0;update()" onblur="update()"></div></td>
       `;
     } else if (type === 'exp') {
       tr.innerHTML = `
         <td><button class="row-del" onclick="delRow('exp',${i})">✕</button></td>
         <td class="name-cell"><input class="editable-name" value="${item.name}" onchange="expItems[${i}].name=this.value"></td>
-        <td class="amt-cell"><input class="editable-amt" value="${item.amt}" onchange="expItems[${i}].amt=parseFloat(this.value)||0;update()" onblur="update()"></td>
+        <td class="amt-cell"><div class="amt-wrap"><span class="dollar-pfx">$</span><input class="editable-amt" value="${item.amt}" onchange="expItems[${i}].amt=parseFloat(this.value)||0;update()" onblur="update()"></div></td>
       `;
     } else {
       tr.innerHTML = `
         <td><button class="row-del" onclick="delRow('rev',${i})">✕</button></td>
         <td class="name-cell"><input class="editable-name" value="${item.name}" onchange="revItems[${i}].name=this.value"></td>
-        <td class="amt-cell"><input class="editable-amt" value="${item.amtLo}" onchange="revItems[${i}].amtLo=parseFloat(this.value)||0;update()" onblur="update()"></td>
+        <td class="amt-cell"><div class="amt-wrap"><span class="dollar-pfx">$</span><input class="editable-amt" value="${item.amtLo}" onchange="revItems[${i}].amtLo=parseFloat(this.value)||0;update()" onblur="update()"></div></td>
       `;
     }
     tbody.appendChild(tr);
