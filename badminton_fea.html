@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Badminton Feasibility Analysis</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;600;700;800&display=swap');
 
@@ -415,6 +416,265 @@
 
   .note { font-size: 10px; color: var(--text3); margin-top: 6px; }
 
+  /* ── Save / Load buttons ── */
+  .action-btns {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .btn-save {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .btn-save:hover { opacity: 0.85; }
+
+  .btn-load {
+    background: transparent;
+    color: var(--text2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .btn-load:hover { color: var(--text); border-color: var(--text2); }
+
+  /* ── Save banner ── */
+  .save-banner {
+    display: none;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border2);
+    padding: 8px 2rem;
+    font-size: 12px;
+    color: var(--text2);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .save-banner.hidden { display: none !important; }
+  .save-banner strong { color: var(--accent); }
+  .banner-close {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0 4px;
+  }
+  .banner-close:hover { color: var(--text); }
+
+  /* ── Modal overlay ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 28px 32px;
+    width: 420px;
+    max-width: 95vw;
+    position: relative;
+  }
+
+  .modal-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 20px;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    background: none;
+    border: none;
+    color: var(--text3);
+    font-size: 20px;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .modal-close:hover { color: var(--text); }
+
+  .modal-field {
+    margin-bottom: 14px;
+  }
+  .modal-field label {
+    display: block;
+    font-size: 10px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 5px;
+  }
+  .modal-field input {
+    width: 100%;
+    background: var(--bg4);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    padding: 7px 10px;
+    outline: none;
+  }
+  .modal-field input:focus { border-color: var(--accent); }
+
+  .modal-note {
+    font-size: 10px;
+    color: var(--text3);
+    margin-bottom: 18px;
+  }
+
+  .modal-btn-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+  }
+
+  .modal-btn-primary {
+    flex: 1;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 9px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .modal-btn-primary:hover { opacity: 0.85; }
+  .modal-btn-primary:disabled { opacity: 0.4; cursor: default; }
+
+  .modal-btn-secondary {
+    background: transparent;
+    color: var(--text2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    padding: 9px 16px;
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+  .modal-btn-secondary:hover { color: var(--text); }
+
+  /* Share URL box */
+  .share-box {
+    display: none;
+    margin-top: 16px;
+    background: var(--bg4);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+  }
+  .share-box.visible { display: block; }
+  .share-box-label {
+    font-size: 10px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+  .share-url-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .share-url-text {
+    flex: 1;
+    font-size: 11px;
+    color: var(--blue);
+    word-break: break-all;
+    line-height: 1.4;
+  }
+  .copy-btn {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    color: var(--text2);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 4px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.15s;
+  }
+  .copy-btn:hover { color: var(--accent); }
+
+  /* Load modal saves list */
+  .saves-list {
+    max-height: 280px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .save-row {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    gap: 8px;
+  }
+  .save-row:last-child { border-bottom: none; }
+  .save-row:hover { background: var(--bg3); }
+  .save-info { flex: 1; min-width: 0; }
+  .save-name { font-size: 12px; color: var(--text); }
+  .save-meta { font-size: 10px; color: var(--text3); margin-top: 1px; }
+  .load-btn {
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    color: var(--text2);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 3px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .load-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .saves-empty {
+    padding: 20px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text3);
+  }
+  .modal-status {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 8px;
+    min-height: 16px;
+  }
+  .modal-status.ok  { color: var(--green); }
+  .modal-status.err { color: var(--red); }
+
   @media (max-width: 900px) {
     .layout { grid-template-columns: 1fr; }
     .sidebar { border-right: none; border-bottom: 1px solid var(--border); }
@@ -443,6 +703,65 @@
       <label>Courts</label>
       <input type="number" id="numCourts" value="7" min="1" max="30" style="width:40px">
     </div>
+    <div class="action-btns">
+      <button class="btn-load" onclick="openLoadModal()">Load / Browse</button>
+      <button class="btn-save" onclick="openSaveModal()">Save Progress</button>
+    </div>
+  </div>
+</div>
+
+<!-- Save banner (shown when a save is loaded) -->
+<div class="save-banner hidden" id="saveBanner">
+  <span id="bannerText"></span>
+  <button class="banner-close" onclick="hideBanner()">×</button>
+</div>
+
+<!-- Save modal -->
+<div class="modal-overlay" id="saveOverlay" onclick="if(event.target===this)closeSaveModal()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeSaveModal()">×</button>
+    <div class="modal-title">Save Your Progress</div>
+    <div class="modal-field">
+      <label>Your Name</label>
+      <input type="text" id="saveName" placeholder="e.g. Vibhu" autocomplete="off">
+    </div>
+    <div class="modal-field">
+      <label>City</label>
+      <input type="text" id="saveCity" placeholder="e.g. Central Jersey" autocomplete="off">
+    </div>
+    <p class="modal-note">Same name + city will overwrite your previous save — share link stays stable.</p>
+    <div class="modal-btn-row">
+      <button class="modal-btn-primary" id="doSaveBtn" onclick="handleSave()">Save &amp; Get Link</button>
+      <button class="modal-btn-secondary" onclick="closeSaveModal()">Cancel</button>
+    </div>
+    <div class="modal-status" id="saveStatus"></div>
+    <div class="share-box" id="shareBox">
+      <div class="share-box-label">Shareable Link</div>
+      <div class="share-url-row">
+        <span class="share-url-text" id="shareUrl"></span>
+        <button class="copy-btn" onclick="copyShareUrl()">Copy</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Load modal -->
+<div class="modal-overlay" id="loadOverlay" onclick="if(event.target===this)closeLoadModal()">
+  <div class="modal" style="width:500px">
+    <button class="modal-close" onclick="closeLoadModal()">×</button>
+    <div class="modal-title">Load a Dashboard</div>
+    <div class="saves-list" id="savesList">
+      <div class="saves-empty">Loading…</div>
+    </div>
+    <div class="modal-field">
+      <label>Or paste a Share URL</label>
+      <input type="text" id="pasteUrl" placeholder="https://…?save=…" autocomplete="off">
+    </div>
+    <div class="modal-btn-row">
+      <button class="modal-btn-primary" onclick="handleLoadUrl()">Load from URL</button>
+      <button class="modal-btn-secondary" onclick="closeLoadModal()">Cancel</button>
+    </div>
+    <div class="modal-status" id="loadStatus"></div>
   </div>
 </div>
 
@@ -606,6 +925,14 @@
 </div>
 
 <script>
+// ─── SUPABASE CONFIG ───────────────────────────────────────────────────────
+// After creating your Supabase project, paste your Project URL and anon key:
+const SUPABASE_URL      = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let isDirty = false;
+
 // ─── DATA ──────────────────────────────────────────────────────────────────
 const DAYS = 30;
 const HRS_PER_DAY = 24; // facility is 24/7; occupancy rate controls utilisation
@@ -983,6 +1310,248 @@ document.getElementById('occupancySlider').addEventListener('input', update);
 document.getElementById('numCourts').addEventListener('input', update);
 document.getElementById('mortgageRateSlider').addEventListener('input', update);
 document.getElementById('mortgageTermSlider').addEventListener('input', update);
+
+// Mark dirty on any user interaction anywhere on the page
+document.addEventListener('input',  () => { isDirty = true; });
+document.addEventListener('change', () => { isDirty = true; });
+
+// Warn on close if unsaved changes
+window.addEventListener('beforeunload', e => {
+  if (isDirty) { e.preventDefault(); e.returnValue = ''; }
+});
+
+// Auto-load save from URL param on page open
+checkUrlParams();
+
+// ─── STATE SERIALIZATION ───────────────────────────────────────────────────
+function serializeState() {
+  return {
+    setupItems: JSON.parse(JSON.stringify(setupItems)),
+    expItems:   JSON.parse(JSON.stringify(expItems)),
+    revItems:   JSON.parse(JSON.stringify(revItems)),
+    locName:    document.getElementById('locName').value,
+    sqft:       document.getElementById('sqft').value,
+    numCourts:  document.getElementById('numCourts').value,
+    rate:       document.getElementById('rateSlider').value,
+    occupancy:  document.getElementById('occupancySlider').value,
+    mortgageRate: document.getElementById('mortgageRateSlider').value,
+    mortgageTerm: document.getElementById('mortgageTermSlider').value,
+  };
+}
+
+function deserializeState(s) {
+  setupItems = s.setupItems;
+  expItems   = s.expItems;
+  revItems   = s.revItems;
+  document.getElementById('locName').value            = s.locName || '';
+  document.getElementById('sqft').value               = s.sqft || '';
+  document.getElementById('numCourts').value          = s.numCourts || 7;
+  document.getElementById('rateSlider').value         = s.rate || 30;
+  document.getElementById('occupancySlider').value    = s.occupancy || 33;
+  document.getElementById('mortgageRateSlider').value = s.mortgageRate || 6.5;
+  document.getElementById('mortgageTermSlider').value = s.mortgageTerm || 20;
+  renderAll();
+  update();
+}
+
+// ─── SUPABASE OPS ──────────────────────────────────────────────────────────
+async function doSave(name, city) {
+  const { data, error } = await sb
+    .from('badminton_saves')
+    .upsert(
+      { name, city, data: serializeState(), saved_at: new Date().toISOString() },
+      { onConflict: 'name,city' }
+    )
+    .select('id')
+    .single();
+  if (error) throw error;
+  return data.id;
+}
+
+async function loadSave(id) {
+  const { data, error } = await sb
+    .from('badminton_saves')
+    .select('*')
+    .eq('id', id)
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+async function listSaves() {
+  const { data, error } = await sb
+    .from('badminton_saves')
+    .select('id, name, city, saved_at')
+    .order('saved_at', { ascending: false })
+    .limit(20);
+  if (error) throw error;
+  return data || [];
+}
+
+// ─── SAVE MODAL ────────────────────────────────────────────────────────────
+function openSaveModal() {
+  document.getElementById('saveStatus').textContent = '';
+  document.getElementById('saveStatus').className = 'modal-status';
+  document.getElementById('shareBox').classList.remove('visible');
+  document.getElementById('doSaveBtn').textContent = 'Save & Get Link';
+  document.getElementById('doSaveBtn').disabled = false;
+  document.getElementById('saveOverlay').classList.add('open');
+  document.getElementById('saveName').focus();
+}
+
+function closeSaveModal() {
+  document.getElementById('saveOverlay').classList.remove('open');
+}
+
+async function handleSave() {
+  const name = document.getElementById('saveName').value.trim();
+  const city = document.getElementById('saveCity').value.trim();
+  const statusEl = document.getElementById('saveStatus');
+  const btn = document.getElementById('doSaveBtn');
+  if (!name || !city) {
+    statusEl.textContent = 'Please enter both name and city.';
+    statusEl.className = 'modal-status err';
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+  statusEl.textContent = '';
+  try {
+    const id = await doSave(name, city);
+    isDirty = false;
+    const url = `${location.origin}${location.pathname}?save=${id}`;
+    document.getElementById('shareUrl').textContent = url;
+    document.getElementById('shareBox').classList.add('visible');
+    statusEl.textContent = 'Saved!';
+    statusEl.className = 'modal-status ok';
+    btn.textContent = 'Save Again';
+    // Update browser URL to reflect this save
+    history.replaceState(null, '', `?save=${id}`);
+  } catch (e) {
+    statusEl.textContent = 'Save failed: ' + (e.message || String(e));
+    statusEl.className = 'modal-status err';
+    btn.textContent = 'Save & Get Link';
+  }
+  btn.disabled = false;
+}
+
+function copyShareUrl() {
+  const url = document.getElementById('shareUrl').textContent;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = orig; }, 1500);
+  });
+}
+
+// ─── LOAD MODAL ────────────────────────────────────────────────────────────
+function openLoadModal() {
+  document.getElementById('loadStatus').textContent = '';
+  document.getElementById('loadStatus').className = 'modal-status';
+  document.getElementById('pasteUrl').value = '';
+  document.getElementById('loadOverlay').classList.add('open');
+  renderSavesList();
+}
+
+function closeLoadModal() {
+  document.getElementById('loadOverlay').classList.remove('open');
+}
+
+async function renderSavesList() {
+  const list = document.getElementById('savesList');
+  list.innerHTML = '<div class="saves-empty">Loading…</div>';
+  try {
+    const saves = await listSaves();
+    if (!saves.length) {
+      list.innerHTML = '<div class="saves-empty">No saves yet — be the first!</div>';
+      return;
+    }
+    list.innerHTML = saves.map(s => {
+      const dt = new Date(s.saved_at);
+      const dateStr = dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      return `
+        <div class="save-row">
+          <div class="save-info">
+            <div class="save-name">${escHtml(s.name)}</div>
+            <div class="save-meta">${escHtml(s.city)} · ${dateStr}</div>
+          </div>
+          <button class="load-btn" onclick="handleLoadById('${escHtml(s.id)}')">Load</button>
+        </div>`;
+    }).join('');
+  } catch (e) {
+    list.innerHTML = `<div class="saves-empty">Error: ${escHtml(e.message || String(e))}</div>`;
+  }
+}
+
+async function handleLoadById(id) {
+  const statusEl = document.getElementById('loadStatus');
+  statusEl.textContent = 'Loading…';
+  statusEl.className = 'modal-status';
+  try {
+    const save = await loadSave(id);
+    deserializeState(save.data);
+    isDirty = false;
+    closeLoadModal();
+    showSaveBanner(save.name, save.city, save.saved_at);
+    history.replaceState(null, '', `?save=${id}`);
+  } catch (e) {
+    statusEl.textContent = 'Load failed: ' + (e.message || String(e));
+    statusEl.className = 'modal-status err';
+  }
+}
+
+async function handleLoadUrl() {
+  const raw = document.getElementById('pasteUrl').value.trim();
+  const statusEl = document.getElementById('loadStatus');
+  let id = null;
+  try {
+    id = new URL(raw).searchParams.get('save');
+  } catch (_) {
+    // Maybe they pasted just the UUID directly
+    id = raw.match(/[0-9a-f-]{36}/i)?.[0] || null;
+  }
+  if (!id) {
+    statusEl.textContent = 'Could not find a save ID in that URL.';
+    statusEl.className = 'modal-status err';
+    return;
+  }
+  await handleLoadById(id);
+}
+
+// ─── BANNER ────────────────────────────────────────────────────────────────
+function showSaveBanner(name, city, ts) {
+  const dateStr = new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  document.getElementById('bannerText').innerHTML =
+    `Viewing <strong>${escHtml(name)}</strong> · ${escHtml(city)} · saved ${dateStr}`;
+  document.getElementById('saveBanner').classList.remove('hidden');
+}
+
+function hideBanner() {
+  document.getElementById('saveBanner').classList.add('hidden');
+}
+
+// ─── URL PARAMS ────────────────────────────────────────────────────────────
+async function checkUrlParams() {
+  const id = new URLSearchParams(location.search).get('save');
+  if (!id) return;
+  try {
+    const save = await loadSave(id);
+    deserializeState(save.data);
+    isDirty = false;
+    showSaveBanner(save.name, save.city, save.saved_at);
+  } catch (e) {
+    console.warn('Could not load save from URL:', e.message);
+  }
+}
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
 </script>
 </body>
 </html>
