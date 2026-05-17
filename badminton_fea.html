@@ -785,7 +785,10 @@
       <label>City</label>
       <input type="text" id="saveCity" placeholder="e.g. Central Jersey" autocomplete="off">
     </div>
-    <p class="modal-note">Same name + city will overwrite your previous save — share link stays stable.</p>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+      <input type="checkbox" id="saveAsNewCopy" style="accent-color:var(--accent);width:14px;height:14px;cursor:pointer;flex-shrink:0">
+      <label for="saveAsNewCopy" style="font-size:11px;color:var(--text2);cursor:pointer;margin:0">Save as new copy instead of overwriting</label>
+    </div>
     <div class="modal-btn-row">
       <button class="modal-btn-primary" id="doSaveBtn" onclick="handleSave()">Save &amp; Get Link</button>
       <button class="modal-btn-secondary" onclick="closeSaveModal()">Cancel</button>
@@ -1345,15 +1348,30 @@ function deserializeState(s) {
 }
 
 // ─── SUPABASE OPS ──────────────────────────────────────────────────────────
-async function doSave(name, city) {
-  const { data, error } = await sb
-    .from('badminton_saves')
-    .upsert(
-      { name, city, data: serializeState(), saved_at: new Date().toISOString() },
-      { onConflict: 'name,city' }
-    )
-    .select('id')
-    .single();
+async function doSave(name, city, { newCopy = false } = {}) {
+  const payload = { name, city, data: serializeState(), saved_at: new Date().toISOString() };
+
+  if (newCopy) {
+    const { data, error } = await sb.from('badminton_saves').insert(payload).select('id').single();
+    if (error) throw error;
+    return data.id;
+  }
+
+  // Overwrite: update most recent existing record, or insert if none
+  const { data: existing } = await sb
+    .from('badminton_saves').select('id')
+    .eq('name', name).eq('city', city)
+    .order('saved_at', { ascending: false }).limit(1).maybeSingle();
+
+  if (existing) {
+    const { data, error } = await sb.from('badminton_saves')
+      .update({ data: serializeState(), saved_at: new Date().toISOString() })
+      .eq('id', existing.id).select('id').single();
+    if (error) throw error;
+    return data.id;
+  }
+
+  const { data, error } = await sb.from('badminton_saves').insert(payload).select('id').single();
   if (error) throw error;
   return data.id;
 }
@@ -1396,6 +1414,7 @@ function closeSaveModal() {
 async function handleSave() {
   const name = document.getElementById('saveName').value.trim();
   const city = document.getElementById('saveCity').value.trim();
+  const isNewCopy = document.getElementById('saveAsNewCopy').checked;
   const statusEl = document.getElementById('saveStatus');
   const btn = document.getElementById('doSaveBtn');
   if (!name || !city) {
@@ -1407,29 +1426,27 @@ async function handleSave() {
   btn.textContent = 'Checking…';
   statusEl.textContent = '';
   try {
-    // Check if a save already exists for this name + city
-    const { data: existing } = await sb
-      .from('badminton_saves')
-      .select('id')
-      .eq('name', name)
-      .eq('city', city)
-      .maybeSingle();
-
-    if (existing) {
-      btn.disabled = false;
-      btn.textContent = 'Save & Get Link';
-      const overwrite = confirm(`A save already exists for "${name}" · ${city}.\nOverwrite it with your current data?`);
-      if (!overwrite) return;
-      btn.disabled = true;
-      btn.textContent = 'Saving…';
+    let wasOverwrite = false;
+    if (!isNewCopy) {
+      const { data: existing } = await sb
+        .from('badminton_saves').select('id')
+        .eq('name', name).eq('city', city)
+        .order('saved_at', { ascending: false }).limit(1).maybeSingle();
+      if (existing) {
+        btn.disabled = false;
+        btn.textContent = 'Save & Get Link';
+        if (!confirm(`A save already exists for "${name}" · ${city}.\nOverwrite it with your current data?`)) return;
+        btn.disabled = true;
+        wasOverwrite = true;
+      }
     }
-
-    const id = await doSave(name, city);
+    btn.textContent = 'Saving…';
+    const id = await doSave(name, city, { newCopy: isNewCopy });
     isDirty = false;
     const url = `${location.origin}${location.pathname}?save=${id}`;
     document.getElementById('shareUrl').textContent = url;
     document.getElementById('shareBox').classList.add('visible');
-    statusEl.textContent = existing ? 'Overwritten!' : 'Saved!';
+    statusEl.textContent = isNewCopy ? 'New copy saved!' : wasOverwrite ? 'Overwritten!' : 'Saved!';
     statusEl.className = 'modal-status ok';
     btn.textContent = 'Save Again';
   } catch (e) {

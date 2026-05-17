@@ -15,4 +15,8 @@ jobs:
       - name: Apply migrations
         env:
           DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
-        run: psql "$DATABASE_URL" -f supabase/migrations/001_init.sql
+        run: |
+          for f in $(ls supabase/migrations/*.sql | sort); do
+            echo "Running $f..."
+            psql "$DATABASE_URL" -f "$f"
+          done
