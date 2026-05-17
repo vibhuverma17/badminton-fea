@@ -1560,7 +1560,9 @@ async function handleLoadById(id) {
 }
 
 async function handleDelete(id) {
-  if (!confirm('Delete this save? This cannot be undone.')) return;
+  const pwd = prompt('Enter password to delete:');
+  if (pwd === null) return;
+  if (pwd !== 'delete') { alert('Incorrect password.'); return; }
   const row = document.getElementById('row-' + id);
   if (row) row.style.opacity = '0.4';
   const { error } = await sb.from('badminton_saves').delete().eq('id', id);
