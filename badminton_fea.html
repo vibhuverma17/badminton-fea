@@ -881,8 +881,7 @@
           <tr>
             <th></th>
             <th>Item</th>
-            <th class="right">$/mo (33% occ)</th>
-            <th class="right">$/mo (100% occ)</th>
+            <th class="right" id="revOccHeader">$/mo (33% occ)</th>
           </tr>
         </thead>
         <tbody id="revBody"></tbody>
@@ -891,7 +890,6 @@
             <td></td>
             <td>Other Revenue Total</td>
             <td class="amt-cell" id="revTotalLo">—</td>
-            <td class="amt-cell" id="revTotalHi">—</td>
           </tr>
         </tfoot>
       </table>
@@ -1009,8 +1007,6 @@ function sum(arr, key) { return arr.reduce((s, r) => s + (parseFloat(r[key]) || 
 function getSetupTotal() { return sum(setupItems, 'amt'); }
 function getExpTotal() { return sum(expItems, 'amt'); }
 function getRevLoTotal() { return sum(revItems, 'amtLo'); }
-function getRevHiTotal() { return sum(revItems, 'amtHi'); }
-
 function roundUp50k(n) { return Math.ceil(n / 50000) * 50000; }
 function getMortgagePayment() {
   const principal = roundUp50k(getSetupTotal());
@@ -1022,18 +1018,15 @@ function getMortgagePayment() {
 function getTotalExpense() { return getExpTotal() + getMortgagePayment(); }
 
 // Other (non-court) revenue interpolated linearly across occupancy.
-// amtLo anchors at 33% occ (~8hr equiv), amtHi at 100% occ.
-function getNonCourtRev(occ) {
-  const lo = getRevLoTotal(), hi = getRevHiTotal();
-  const t = Math.max(0, Math.min(1, (occ - 33) / 67));
-  return lo + t * (hi - lo);
+function getNonCourtRev() {
+  return getRevLoTotal();
 }
 
 // 24/7 facility — occupancy is the only utilisation lever
 function calcMonthly(rate, occ) {
   const courts = parseInt(document.getElementById('numCourts').value) || 7;
   const courtRev = courts * HRS_PER_DAY * DAYS * rate * (occ / 100);
-  const otherRev = getNonCourtRev(occ);
+  const otherRev = getNonCourtRev();
   const totalRev = courtRev + otherRev;
   const expense = getTotalExpense(); // includes mortgage payment
   const profit = totalRev - expense;
@@ -1064,7 +1057,6 @@ function renderTable(tbodyId, items, type) {
         <td><button class="row-del" onclick="delRow('rev',${i})">✕</button></td>
         <td class="name-cell"><input class="editable-name" value="${item.name}" onchange="revItems[${i}].name=this.value"></td>
         <td class="amt-cell"><input class="editable-amt" value="${item.amtLo}" onchange="revItems[${i}].amtLo=parseFloat(this.value)||0;update()" onblur="update()"></td>
-        <td class="amt-cell"><input class="editable-amt" value="${item.amtHi}" onchange="revItems[${i}].amtHi=parseFloat(this.value)||0;update()" onblur="update()"></td>
       `;
     }
     tbody.appendChild(tr);
@@ -1074,7 +1066,7 @@ function renderTable(tbodyId, items, type) {
 function addRow(type) {
   if (type === 'setup') setupItems.push({ name: 'New item', amt: 0, red: false });
   else if (type === 'exp') expItems.push({ name: 'New item', amt: 0 });
-  else revItems.push({ name: 'New item', amtLo: 0, amtHi: 0 });
+  else revItems.push({ name: 'New item', amtLo: 0 });
   renderAll();
   update();
 }
@@ -1210,7 +1202,7 @@ function update() {
   document.getElementById('setupTotal').textContent = fmt(setup);
   document.getElementById('expTotal').textContent = fmt(expense);
   document.getElementById('revTotalLo').textContent = fmt(getRevLoTotal());
-  document.getElementById('revTotalHi').textContent = fmt(getRevHiTotal());
+  document.getElementById('revOccHeader').textContent = `$/mo (${occ}% occ)`;
 
   // Metrics
   document.getElementById('metricsGrid').innerHTML = `
