@@ -1482,8 +1482,6 @@ async function handleSave() {
     statusEl.textContent = 'Saved!';
     statusEl.className = 'modal-status ok';
     btn.textContent = 'Save Again';
-    // Update browser URL to reflect this save
-    history.replaceState(null, '', `?save=${id}`);
   } catch (e) {
     statusEl.textContent = 'Save failed: ' + (e.message || String(e));
     statusEl.className = 'modal-status err';
