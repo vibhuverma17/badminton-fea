@@ -426,6 +426,19 @@
     align-items: center;
   }
 
+  .btn-new {
+    background: transparent;
+    color: var(--red);
+    border: 1px solid var(--red-dim);
+    border-radius: var(--radius);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .btn-new:hover { background: var(--red-dim); border-color: var(--red); }
+
   .btn-save {
     background: var(--accent);
     color: #000;
@@ -720,6 +733,7 @@
       <input type="number" id="numCourts" value="7" min="1" max="30" style="width:40px">
     </div>
     <div class="action-btns">
+      <button class="btn-new" onclick="handleNew()">New</button>
       <button class="btn-load" onclick="openLoadModal()">Load / Browse</button>
       <button class="btn-save" onclick="openSaveModal()">Save Progress</button>
     </div>
@@ -1583,6 +1597,88 @@ async function checkUrlParams() {
   } catch (e) {
     console.warn('Could not load save from URL:', e.message);
   }
+}
+
+function handleNew() {
+  if (isDirty) {
+    const save = confirm('You have unsaved changes.\nSave your progress before starting fresh?');
+    if (save) { openSaveModal(); return; }
+  }
+  resetToDefaults();
+}
+
+function resetToDefaults() {
+  setupItems = [
+    { name: 'Business registration', amt: 150, red: false },
+    { name: 'Warehouse security deposit', amt: 7500, red: true },
+    { name: 'Lease legal fees', amt: 5000, red: false },
+    { name: 'Buildout permit', amt: 2000, red: true },
+    { name: 'Architect drawings', amt: 5000, red: true },
+    { name: 'Restroom upgrade', amt: 20000, red: true },
+    { name: 'WiFi installation', amt: 3000, red: false },
+    { name: 'Sound proofing', amt: 15000, red: false },
+    { name: 'Sprinkler system', amt: 20000, red: true },
+    { name: 'Stringing machine', amt: 8000, red: false },
+    { name: 'Stringing kit', amt: 400, red: false },
+    { name: 'Badminton mat', amt: 9000, red: false },
+    { name: 'Wooden sprung flooring', amt: 40000, red: false },
+    { name: 'Acrylic flooring (Pickle)', amt: 5000, red: false },
+    { name: 'Poles', amt: 4800, red: false },
+    { name: 'Net', amt: 600, red: false },
+    { name: 'Benches', amt: 2000, red: false },
+    { name: 'Umpire chair', amt: 1500, red: false },
+    { name: 'Free badminton', amt: 2000, red: false },
+    { name: 'LED anti glare', amt: 15000, red: false },
+    { name: 'Light electrical wiring', amt: 5000, red: false },
+    { name: 'Security cameras', amt: 4000, red: false },
+    { name: 'Website/domain/socials', amt: 1000, red: false },
+    { name: 'Branding signage', amt: 3000, red: false },
+    { name: 'Grand opening marketing', amt: 5000, red: false },
+  ];
+  expItems = [
+    { name: 'Coach at $50/hr', amt: 8666.67 },
+    { name: 'Salary (2 individuals)', amt: 8666.67 },
+    { name: 'Electricity', amt: 3000 },
+    { name: 'Surveillance', amt: 1500 },
+    { name: 'Heating', amt: 2000 },
+    { name: 'Facility rent', amt: 15000 },
+    { name: 'Maintenance and cleaning', amt: 0 },
+    { name: 'Birdies', amt: 2000 },
+    { name: 'Racket', amt: 500 },
+    { name: 'String (material)', amt: 500 },
+    { name: 'WiFi', amt: 100 },
+    { name: 'Insurance', amt: 3000 },
+    { name: 'Booking system fee', amt: 400 },
+    { name: 'GL/Worker comp/Property', amt: 2000 },
+    { name: 'Shoe and apparel inventory', amt: 8000 },
+  ];
+  revItems = [
+    { name: 'Shuttle commission',      amtLo: 400,   amtHi: 900   },
+    { name: 'Tournaments',             amtLo: 2400,  amtHi: 0     },
+    { name: 'League',                  amtLo: 0,     amtHi: 0     },
+    { name: 'Private lessons at 5%',   amtLo: 5040,  amtHi: 5040  },
+    { name: 'Stringing',               amtLo: 1540,  amtHi: 1760  },
+    { name: 'Coaching at 50 students', amtLo: 18900, amtHi: 18900 },
+    { name: 'Pro shop (excl. string)', amtLo: 4000,  amtHi: 5000  },
+    { name: 'Corporate events',        amtLo: 3000,  amtHi: 3000  },
+    { name: 'Sponsorship',             amtLo: 0,     amtHi: 0     },
+    { name: 'Championship cup/year',   amtLo: 0,     amtHi: 0     },
+    { name: 'Membership',              amtLo: 0,     amtHi: 0     },
+    { name: 'Summer camps',            amtLo: 0,     amtHi: 0     },
+    { name: 'Cafe',                    amtLo: 0,     amtHi: 0     },
+  ];
+  document.getElementById('locName').value            = 'Central Jersey';
+  document.getElementById('sqft').value               = '10,000';
+  document.getElementById('numCourts').value          = 7;
+  document.getElementById('rateSlider').value         = 30;
+  document.getElementById('occupancySlider').value    = 33;
+  document.getElementById('mortgageRateSlider').value = 6.5;
+  document.getElementById('mortgageTermSlider').value = 20;
+  hideBanner();
+  history.replaceState(null, '', window.location.pathname);
+  isDirty = false;
+  renderAll();
+  update();
 }
 
 function handleLogoClick() {
