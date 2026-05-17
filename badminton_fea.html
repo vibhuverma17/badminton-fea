@@ -997,67 +997,9 @@ const HRS_PER_DAY = 24; // facility is 24/7; occupancy rate controls utilisation
 let mortgageRate = 6.5; // annual %, default = SBA 504 as of May 2026
 let mortgageTerm = 20;  // years; typical 20–25yr amortization for commercial
 
-let setupItems = [
-  { name: 'Business registration', amt: 150, red: false },
-  { name: 'Warehouse security deposit', amt: 7500, red: true },
-  { name: 'Lease legal fees', amt: 5000, red: false },
-  { name: 'Buildout permit', amt: 2000, red: true },
-  { name: 'Architect drawings', amt: 5000, red: true },
-  { name: 'Restroom upgrade', amt: 20000, red: true },
-  { name: 'WiFi installation', amt: 3000, red: false },
-  { name: 'Sound proofing', amt: 15000, red: false },
-  { name: 'Sprinkler system', amt: 20000, red: true },
-  { name: 'Stringing machine', amt: 8000, red: false },
-  { name: 'Stringing kit', amt: 400, red: false },
-  { name: 'Badminton mat', amt: 9000, red: false },
-  { name: 'Wooden sprung flooring', amt: 40000, red: false },
-  { name: 'Acrylic flooring (Pickle)', amt: 5000, red: false },
-  { name: 'Poles', amt: 4800, red: false },
-  { name: 'Net', amt: 600, red: false },
-  { name: 'Benches', amt: 2000, red: false },
-  { name: 'Umpire chair', amt: 1500, red: false },
-  { name: 'Free badminton', amt: 2000, red: false },
-  { name: 'LED anti glare', amt: 15000, red: false },
-  { name: 'Light electrical wiring', amt: 5000, red: false },
-  { name: 'Security cameras', amt: 4000, red: false },
-  { name: 'Website/domain/socials', amt: 1000, red: false },
-  { name: 'Branding signage', amt: 3000, red: false },
-  { name: 'Grand opening marketing', amt: 5000, red: false },
-];
-
-let expItems = [
-  { name: 'Coach at $50/hr', amt: 8666.67 },
-  { name: 'Salary (2 individuals)', amt: 8666.67 },
-  { name: 'Electricity', amt: 3000 },
-  { name: 'Surveillance', amt: 1500 },
-  { name: 'Heating', amt: 2000 },
-  { name: 'Facility rent', amt: 15000 },
-  { name: 'Maintenance and cleaning', amt: 0 },
-  { name: 'Birdies', amt: 2000 },
-  { name: 'Racket', amt: 500 },
-  { name: 'String (material)', amt: 500 },
-  { name: 'WiFi', amt: 100 },
-  { name: 'Insurance', amt: 3000 },
-  { name: 'Booking system fee', amt: 400 },
-  { name: 'GL/Worker comp/Property', amt: 2000 },
-  { name: 'Shoe and apparel inventory', amt: 8000 },
-];
-
-let revItems = [
-  { name: 'Shuttle commission',      amtLo: 400,   amtHi: 900   },
-  { name: 'Tournaments',             amtLo: 2400,  amtHi: 0     },
-  { name: 'League',                  amtLo: 0,     amtHi: 0     },
-  { name: 'Private lessons at 5%',   amtLo: 5040,  amtHi: 5040  },
-  { name: 'Stringing',               amtLo: 1540,  amtHi: 1760  },
-  { name: 'Coaching at 50 students', amtLo: 18900, amtHi: 18900 },
-  { name: 'Pro shop (excl. string)', amtLo: 4000,  amtHi: 5000  },
-  { name: 'Corporate events',        amtLo: 3000,  amtHi: 3000  },
-  { name: 'Sponsorship',             amtLo: 0,     amtHi: 0     },
-  { name: 'Championship cup/year',   amtLo: 0,     amtHi: 0     },
-  { name: 'Membership',              amtLo: 0,     amtHi: 0     },
-  { name: 'Summer camps',            amtLo: 0,     amtHi: 0     },
-  { name: 'Cafe',                    amtLo: 0,     amtHi: 0     },
-];
+let setupItems = [];
+let expItems   = [];
+let revItems   = [];
 
 // ─── HELPERS ───────────────────────────────────────────────────────────────
 function fmt(n) { return '$' + Math.round(Math.abs(n)).toLocaleString(); }
