@@ -1547,6 +1547,9 @@ async function renderSavesList() {
 }
 
 async function handleLoadById(id) {
+  const pwd = prompt('Enter password to load:');
+  if (pwd === null) return;
+  if (pwd !== 'load') { alert('Incorrect password.'); return; }
   const statusEl = document.getElementById('loadStatus');
   statusEl.textContent = 'Loading…';
   statusEl.className = 'modal-status';
